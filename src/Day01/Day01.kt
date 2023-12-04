@@ -1,3 +1,9 @@
+package Day01
+
+import readInput
+
+private const val PATH = "Day01/"
+
 fun main() {
     fun part1(input: List<String>): Int {
         return input.map { Calibrator.calculateCalibrationValue(it) }
@@ -10,14 +16,14 @@ fun main() {
             .reduce(Int::plus)
     }
 
-    val input = readInput("Day01")
+    val input = readInput("Day01", path = PATH)
     println("part1: " + part1(input))
     println("part2: " + part2(input))
 
     // test if implementation meets criteria from the description, like:
-    val testInput = readInput("Day01_test")
+    val testInput = readInput("Day01_test", path = PATH)
     check(part1(testInput) == 142)
-    val testInput2 = readInput("Day01_part2_test")
+    val testInput2 = readInput("Day01_part2_test", path = PATH)
     check(part2(testInput2) == 281)
 }
 
