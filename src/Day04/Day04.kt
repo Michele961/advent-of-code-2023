@@ -1,8 +1,6 @@
 package Day04
 
-import println
 import readInput
-import java.util.*
 import kotlin.math.pow
 
 private const val PATH = "Day04/"
@@ -14,11 +12,9 @@ fun main() {
 
     fun part2(input: List<String>): Int {
         val scratchCards = input.map { ScratchCard.parse(it) }.toList()
-        val pile = ScratchCardPile(scratchCards)
+        val pile = ScratchCardQueue(scratchCards)
         pile.scratchAll()
-        val maxSize = pile.maxSize()
-        println("Max size: $maxSize")
-        return maxSize
+        return pile.getScratchedCount()
     }
 
     // test if implementation meets criteria from the description, like:
@@ -28,48 +24,43 @@ fun main() {
 
     val input = readInput("Day04", path = PATH)
     check(part1(input) == 24542)
-    part2(input).println()
+    check(part2(input) == 8736438)
 }
 
-class ScratchCardPile(private val startingCards: List<ScratchCard>) {
-    private val queue: Queue<ScratchCard> = LinkedList()
+class ScratchCardQueue(private val startingCards: List<ScratchCard>) {
+    private var indexCopy: MutableMap<Int, Int> = mutableMapOf()
     private var scratched: Int = 0
 
-    fun maxSize(): Int = scratched
+    fun getScratchedCount(): Int = scratched
 
-    fun scratchAll() {
-        println("Scratching all cards ...")
+    fun scratchAll(): Int {
         startingCards.forEach { scratchAll(it.index) }
+        val scratch = scratched
+        indexCopy = mutableMapOf()
+        return scratch
     }
 
     private fun scratchAll(index: Int) {
         startingCards.find { it.index == index }.run {
-            println("\n\nMain cards: $index")
-            scratch(index, false)
-        }
-        queue.filter { it.index == index }.forEach {
-            println("\nQueue cards: $index")
-            scratch(it.index, removeFromQueue = true)
+            scratch(index, makeCopy = indexCopy.getOrDefault(index, 0))
         }
     }
 
-    private fun scratch(index: Int, removeFromQueue: Boolean) {
-        scratched++
+    private fun scratch(index: Int, makeCopy: Int = 0) {
         val winnings = startingCards.find { it.index == index }?.countWinnings() ?: 0
-        println("Scratching${if (removeFromQueue) "(Copy)" else ""} card $index with $winnings winnings")
-        for (i in 1 until winnings + 1) {
-            println("Adding to queue: ${index + i}")
-            addToQueue(index + i)
-        }
-        if (removeFromQueue) {
-            val element = startingCards.find { it.index == index }
-            queue.remove(element = element)
-            println("Removing from queue: ${element!!.index} \n\n")
-        }
+        val amountToIncrease = if (makeCopy != 0) makeCopy + 1 else 1
+        winScratch(winnings, index, amountToIncrease)
+        scratched += amountToIncrease
     }
 
-    private fun addToQueue(index: Int) {
-        queue.add(startingCards.find { it.index == index })
+    private fun winScratch(winnings: Int, index: Int, amountToIncrease: Int) {
+        for (i in 1 until winnings + 1) {
+            if (indexCopy[index + i] != null) {
+                indexCopy.computeIfPresent(index + i) { _, v -> v + amountToIncrease }
+            } else {
+                indexCopy.computeIfAbsent(index + i) { amountToIncrease }
+            }
+        }
     }
 }
 
